@@ -15,9 +15,6 @@ public sealed class AppSettings
 
     public TimeOnly PlanningReminderTime { get; set; } = new TimeOnly(14, 30);
 
-    /// <summary>If true, a filed-away document that would overwrite an existing file is renamed instead.</summary>
-    public bool RenameOnFilingCollision { get; set; } = true;
-
     public DateOnly? LastMorningBriefShownDate { get; set; }
     public DateOnly? LastPlanningReminderShownDate { get; set; }
 }

@@ -1,0 +1,48 @@
+<Window x:Class="DocumentDeploy.App.Views.DocumentTemplateLibraryWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Document templates" Width="720" Height="560" WindowStartupLocation="CenterOwner">
+    <TabControl Margin="16">
+        <TabItem Header="Documents">
+            <Grid Margin="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                    <Button Content="Add" Padding="10,5" Margin="0,0,8,0" Click="OnAddDocumentClick"/>
+                    <Button Content="Edit" Padding="10,5" Margin="0,0,8,0" Click="OnEditDocumentClick"/>
+                    <Button Content="Delete" Padding="10,5" Click="OnDeleteDocumentClick"/>
+                </StackPanel>
+                <DataGrid x:Name="DocumentsGrid" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True"
+                          SelectionMode="Single" SelectionUnit="FullRow" MouseDoubleClick="OnDocumentsGridDoubleClick">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
+                        <DataGridCheckBoxColumn Header="Returns" Binding="{Binding NeedsReturn}" Width="70"/>
+                        <DataGridTextColumn Header="Due back" Binding="{Binding ReturnDeadline}" Width="110"/>
+                        <DataGridTextColumn Header="Return folder" Binding="{Binding ReturnDestinationPath}" Width="220"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </TabItem>
+        <TabItem Header="Session templates">
+            <Grid Margin="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                    <Button Content="Add" Padding="10,5" Margin="0,0,8,0" Click="OnAddSessionTemplateClick"/>
+                    <Button Content="Edit" Padding="10,5" Margin="0,0,8,0" Click="OnEditSessionTemplateClick"/>
+                    <Button Content="Delete" Padding="10,5" Click="OnDeleteSessionTemplateClick"/>
+                </StackPanel>
+                <DataGrid x:Name="SessionTemplatesGrid" Grid.Row="1" AutoGenerateColumns="False" IsReadOnly="True"
+                          SelectionMode="Single" SelectionUnit="FullRow" MouseDoubleClick="OnSessionTemplatesGridDoubleClick">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </TabItem>
+    </TabControl>
+</Window>

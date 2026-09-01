@@ -1,0 +1,34 @@
+<Window x:Class="DocumentDeploy.App.Views.DocumentTemplateEditDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Document template" Width="420" Height="460" WindowStartupLocation="CenterOwner">
+    <ScrollViewer Padding="16">
+        <StackPanel>
+            <TextBlock Text="Name"/>
+            <TextBox x:Name="NameBox" Margin="0,2,0,10"/>
+
+            <TextBlock Text="Where to find/collect it (folder or file path, optional)"/>
+            <TextBox x:Name="SourcePathBox" Margin="0,2,0,10"/>
+
+            <CheckBox x:Name="NeedsReturnCheckBox" Content="A completed copy needs to come back"
+                      Margin="0,0,0,10" Checked="OnNeedsReturnChanged" Unchecked="OnNeedsReturnChanged"/>
+
+            <StackPanel x:Name="ReturnDetailsPanel">
+                <TextBlock Text="Folder to file the completed copy in"/>
+                <TextBox x:Name="ReturnDestinationBox" Margin="0,2,0,10"/>
+
+                <TextBlock Text="Due back"/>
+                <ComboBox x:Name="DeadlineCombo" Margin="0,2,0,10"/>
+            </StackPanel>
+
+            <TextBlock Text="Notes (optional)"/>
+            <TextBox x:Name="NotesBox" Margin="0,2,0,16" TextWrapping="Wrap" AcceptsReturn="True" Height="60"/>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Cancel" Padding="14,6" Margin="0,0,8,0" Click="OnCancelClick"/>
+                <Button Content="Save" Padding="14,6" IsDefault="True" Click="OnSaveClick"/>
+            </StackPanel>
+            <TextBlock x:Name="ErrorText" Foreground="Red" Margin="0,8,0,0" TextWrapping="Wrap"/>
+        </StackPanel>
+    </ScrollViewer>
+</Window>
