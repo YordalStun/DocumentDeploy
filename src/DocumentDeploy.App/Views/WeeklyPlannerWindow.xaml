@@ -11,16 +11,16 @@
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,10">
-            <Button Content="◀ Previous week" Padding="10,5" Margin="0,0,8,0" Click="OnPreviousWeekClick"/>
+            <Button Content="◀ Previous week" Style="{StaticResource SecondaryButton}" Padding="10,5" Margin="0,0,8,0" Click="OnPreviousWeekClick"/>
             <TextBlock x:Name="WeekLabel" VerticalAlignment="Center" FontWeight="SemiBold" FontSize="14" Margin="8,0"/>
-            <Button Content="Next week ▶" Padding="10,5" Margin="8,0,0,0" Click="OnNextWeekClick"/>
+            <Button Content="Next week ▶" Style="{StaticResource SecondaryButton}" Padding="10,5" Margin="8,0,0,0" Click="OnNextWeekClick"/>
         </StackPanel>
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,10">
             <Button Content="Generate from timetable" Padding="10,5" Margin="0,0,8,0" Click="OnGenerateClick"/>
             <Button Content="Add one-off item" Padding="10,5" Margin="0,0,8,0" Click="OnAddClick"/>
-            <Button Content="Edit" Padding="10,5" Margin="0,0,8,0" Click="OnEditClick"/>
-            <Button Content="Delete" Padding="10,5" Click="OnDeleteClick"/>
+            <Button Content="Edit" Style="{StaticResource SecondaryButton}" Padding="10,5" Margin="0,0,8,0" Click="OnEditClick"/>
+            <Button Content="Delete" Style="{StaticResource DangerButton}" Padding="10,5" Click="OnDeleteClick"/>
         </StackPanel>
 
         <Border Grid.Row="2" Background="#FDECEA" BorderBrush="#F1A9A0" BorderThickness="1" CornerRadius="6"

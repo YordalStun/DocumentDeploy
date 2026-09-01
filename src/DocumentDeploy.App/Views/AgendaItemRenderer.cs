@@ -109,6 +109,7 @@ internal static class AgendaItemRenderer
                 Content = "Open folder",
                 Padding = new Thickness(8, 2, 8, 2),
                 HorizontalAlignment = HorizontalAlignment.Right,
+                Style = Application.Current.TryFindResource("SecondaryButton") as Style,
             };
             button.Click += (_, _) => FileSystemLauncher.OpenInExplorer(need.SourcePath);
             DockPanel.SetDock(button, Dock.Right);
