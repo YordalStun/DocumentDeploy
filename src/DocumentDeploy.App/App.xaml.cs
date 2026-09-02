@@ -1,4 +1,6 @@
+using System.Globalization;
 using System.Windows;
+using System.Windows.Markup;
 using System.Windows.Threading;
 using DocumentDeploy.App.Services;
 using DocumentDeploy.App.Views;
@@ -17,6 +19,18 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+
+        // Built for UK use - force British conventions (dd/MM/yyyy, day/month names, etc.)
+        // regardless of the machine's own regional settings. This also sets a real, resolvable
+        // culture for WPF's binding engine, which needs one to activate any data binding at all.
+        var uk = CultureInfo.GetCultureInfo("en-GB");
+        CultureInfo.DefaultThreadCurrentCulture = uk;
+        CultureInfo.DefaultThreadCurrentUICulture = uk;
+        CultureInfo.CurrentCulture = uk;
+        CultureInfo.CurrentUICulture = uk;
+        FrameworkElement.LanguageProperty.OverrideMetadata(
+            typeof(FrameworkElement),
+            new FrameworkPropertyMetadata(XmlLanguage.GetLanguage(uk.IetfLanguageTag)));
 
         DispatcherUnhandledException += OnDispatcherUnhandledException;
         AppDomain.CurrentDomain.UnhandledException += (_, args) =>

@@ -10,7 +10,12 @@
     <ApplicationIcon>Resources\app.ico</ApplicationIcon>
     <AssemblyName>DocumentDeploy</AssemblyName>
     <RootNamespace>DocumentDeploy.App</RootNamespace>
-    <InvariantGlobalization>true</InvariantGlobalization>
+    <!-- Must stay false: WPF's data-binding engine (BindingExpression.GetCulture, used by every
+         binding, not just ones with an explicit StringFormat) needs real culture data to
+         activate. With this true, .NET strips that out entirely and even a plain {Binding X}
+         throws "Cannot find non-neutral culture related to 'en-US'" the moment a bound window
+         is shown. -->
+    <InvariantGlobalization>false</InvariantGlobalization>
     <!-- Lets this project build (not run) on a non-Windows machine, e.g. for local CI-style validation. Harmless on Windows. -->
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
   </PropertyGroup>
