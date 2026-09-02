@@ -51,6 +51,13 @@ network calls at all.
   useful.
 - **Bulk editing.** Export your timetable or document library to CSV, edit
   in Excel, and re-import - handy for setting up a new term in one go.
+- **Move your setup to another computer.** Settings has an "Export all
+  setup" button that bundles your timetable, document templates, session
+  templates and settings into a single file - build everything at home,
+  carry the file over (USB stick, email to yourself, OneDrive), and
+  "Import setup" on the other machine. It never includes already-planned
+  weeks, filed documents, or answered questions - only the setup itself,
+  so it's safe to use on a machine that's already in daily use too.
 
 ## Installing
 

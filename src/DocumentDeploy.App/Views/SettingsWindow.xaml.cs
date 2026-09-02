@@ -103,6 +103,56 @@ public partial class SettingsWindow : Window
         StatusText.Text = $"Document templates import: {result.Added} added, {result.Updated} updated.";
     }
 
+    private void OnExportSetupClick(object sender, RoutedEventArgs e)
+    {
+        var dialog = new SaveFileDialog { FileName = "documentdeploy-setup.json", Filter = "DocumentDeploy setup (*.json)|*.json" };
+        if (dialog.ShowDialog() != true) return;
+
+        var json = SetupBundleIO.Export(_state.RecurringSlots, _state.DocumentTemplates, _state.SessionTemplates, _state.Settings);
+        File.WriteAllText(dialog.FileName, json);
+        StatusText.Text = $"Exported {_state.RecurringSlots.Count} timetable slot(s), {_state.DocumentTemplates.Count} document template(s) " +
+            $"and {_state.SessionTemplates.Count} session template(s) to {dialog.FileName}.";
+    }
+
+    private void OnImportSetupClick(object sender, RoutedEventArgs e)
+    {
+        var dialog = new OpenFileDialog { Filter = "DocumentDeploy setup (*.json)|*.json" };
+        if (dialog.ShowDialog() != true) return;
+
+        SetupBundle bundle;
+        try
+        {
+            bundle = SetupBundleIO.Import(File.ReadAllText(dialog.FileName));
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Couldn't read that file:\n{ex.Message}", "Import setup", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        var confirm = MessageBox.Show(
+            $"This will replace your current setup:\n\n" +
+            $"Timetable: {_state.RecurringSlots.Count} slot(s) → {bundle.RecurringSlots.Count}\n" +
+            $"Document templates: {_state.DocumentTemplates.Count} → {bundle.DocumentTemplates.Count}\n" +
+            $"Session templates: {_state.SessionTemplates.Count} → {bundle.SessionTemplates.Count}\n\n" +
+            "Already-planned weeks, filed documents, and answered questions are not affected.\n\n" +
+            "Continue?",
+            "Import setup", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+        if (confirm != MessageBoxResult.Yes) return;
+
+        SetupBundleIO.ApplyTo(bundle, _state.RecurringSlots, _state.DocumentTemplates, _state.SessionTemplates, _state.Settings);
+
+        _state.SaveRecurringSlots();
+        _state.SaveDocumentTemplates();
+        _state.SaveSessionTemplates();
+        _state.SaveSettings();
+        StartupRegistrationService.SetEnabled(_state.Settings.LaunchAtWindowsStartup);
+        LoadFromSettings();
+
+        StatusText.Text = $"Imported {bundle.RecurringSlots.Count} timetable slot(s), {bundle.DocumentTemplates.Count} document template(s) " +
+            $"and {bundle.SessionTemplates.Count} session template(s).";
+    }
+
     private void OnCloseClick(object sender, RoutedEventArgs e)
     {
         if (SaveToSettings())

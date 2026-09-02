@@ -22,6 +22,16 @@
 
             <Separator Margin="0,0,0,20"/>
 
+            <TextBlock Text="Move to another computer" FontWeight="Bold" FontSize="14" Margin="0,0,0,6"/>
+            <TextBlock TextWrapping="Wrap" Foreground="{StaticResource MutedTextBrush}" FontSize="12" Margin="0,0,0,10"
+                       Text="Exports your timetable, document templates, session templates and settings as one file - carry it over (USB stick, email to yourself, OneDrive) and import it on the other machine. This never includes already-planned weeks, filed documents or answered questions - only the setup itself."/>
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,20">
+                <Button Content="Export all setup..." Padding="10,5" Margin="0,0,8,0" Click="OnExportSetupClick"/>
+                <Button Content="Import setup..." Style="{StaticResource SecondaryButton}" Padding="10,5" Click="OnImportSetupClick"/>
+            </StackPanel>
+
+            <Separator Margin="0,0,0,20"/>
+
             <TextBlock Text="Backup / bulk edit" FontWeight="Bold" FontSize="14" Margin="0,0,0,10"/>
 
             <TextBlock Text="Timetable" FontWeight="SemiBold"/>
