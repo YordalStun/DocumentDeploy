@@ -93,14 +93,11 @@ internal static class AgendaItemRenderer
             return zone;
         }
 
+        // DockPanel's LastChildFill (default true) makes the LAST child fill remaining space and
+        // ignores its own Dock value - so the button (docked right) must be added BEFORE the
+        // text, letting the text be the fill element that both sits left and wraps correctly
+        // against the actual remaining width.
         var row = new DockPanel { Margin = new Thickness(0, 0, 0, 6) };
-        var text = new TextBlock
-        {
-            Text = need.Name,
-            VerticalAlignment = VerticalAlignment.Center,
-            TextWrapping = TextWrapping.Wrap,
-        };
-        row.Children.Add(text);
 
         if (!string.IsNullOrWhiteSpace(need.SourcePath))
         {
@@ -108,13 +105,22 @@ internal static class AgendaItemRenderer
             {
                 Content = "Open folder",
                 Padding = new Thickness(8, 2, 8, 2),
-                HorizontalAlignment = HorizontalAlignment.Right,
+                Margin = new Thickness(8, 0, 0, 0),
+                VerticalAlignment = VerticalAlignment.Center,
                 Style = Application.Current.TryFindResource("SecondaryButton") as Style,
             };
             button.Click += (_, _) => FileSystemLauncher.OpenInExplorer(need.SourcePath);
             DockPanel.SetDock(button, Dock.Right);
             row.Children.Add(button);
         }
+
+        var text = new TextBlock
+        {
+            Text = need.Name,
+            VerticalAlignment = VerticalAlignment.Center,
+            TextWrapping = TextWrapping.Wrap,
+        };
+        row.Children.Add(text);
 
         return row;
     }

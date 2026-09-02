@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Threading;
 using DocumentDeploy.App.Services;
 using DocumentDeploy.App.Views;
 
@@ -16,6 +17,10 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+
+        DispatcherUnhandledException += OnDispatcherUnhandledException;
+        AppDomain.CurrentDomain.UnhandledException += (_, args) =>
+            CrashLogger.Log("AppDomain.UnhandledException", args.ExceptionObject as Exception ?? new Exception(args.ExceptionObject?.ToString()));
 
         _instanceGuard = new SingleInstanceGuard();
         if (!_instanceGuard.IsFirstInstance)
@@ -58,6 +63,21 @@ public partial class App : Application
         if (Dashboard.WindowState == WindowState.Minimized)
             Dashboard.WindowState = WindowState.Normal;
         Dashboard.Activate();
+    }
+
+    private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+    {
+        CrashLogger.Log("DispatcherUnhandledException", e.Exception);
+
+        MessageBox.Show(
+            $"Something went wrong, but DocumentDeploy is staying open.\n\n{e.Exception.Message}\n\n" +
+            "Details were written to %AppData%\\DocumentDeploy\\crash.log.",
+            "DocumentDeploy", MessageBoxButton.OK, MessageBoxImage.Warning);
+
+        // Keep the app alive where we can - it's a background tray app, and losing it entirely
+        // over one bad interaction (and taking the tray icon down with it) is worse than a
+        // logged, recoverable hiccup.
+        e.Handled = true;
     }
 
     protected override void OnExit(ExitEventArgs e)

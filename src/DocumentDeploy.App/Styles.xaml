@@ -19,7 +19,7 @@
     <SolidColorBrush x:Key="AppBorderBrush" Color="{StaticResource BorderColor}"/>
     <SolidColorBrush x:Key="TextBrush" Color="{StaticResource TextColor}"/>
     <SolidColorBrush x:Key="MutedTextBrush" Color="{StaticResource MutedTextColor}"/>
-    <SolidColorBrush x:Key="SecondaryButtonBrush" Color="#E7EAF2"/>
+    <SolidColorBrush x:Key="DangerBrush" Color="#C0392B"/>
 
     <Style TargetType="Window">
         <Setter Property="Background" Value="{StaticResource BackgroundBrush}"/>
@@ -32,9 +32,12 @@
         <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
     </Style>
 
+    <!-- One shared template: a filled or outlined pill depending on Background/BorderThickness,
+         so Primary/Secondary/Danger all render consistently instead of three unrelated looks. -->
     <Style TargetType="Button">
         <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
         <Setter Property="Foreground" Value="White"/>
+        <Setter Property="BorderBrush" Value="Transparent"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Padding" Value="12,6"/>
         <Setter Property="Cursor" Value="Hand"/>
@@ -42,8 +45,9 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="Bd" Background="{TemplateBinding Background}" CornerRadius="6"
-                            Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
+                    <Border x:Name="Bd" Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="6" Padding="{TemplateBinding Padding}" SnapsToDevicePixels="True">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <ControlTemplate.Triggers>
@@ -64,13 +68,17 @@
         </Setter>
     </Style>
 
+    <!-- Neutral outline, not a competing fill color - reads as "not the primary action" without
+         clashing against it or the Danger red. -->
     <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-        <Setter Property="Background" Value="{StaticResource SecondaryButtonBrush}"/>
+        <Setter Property="Background" Value="White"/>
         <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+        <Setter Property="BorderBrush" Value="{StaticResource AppBorderBrush}"/>
+        <Setter Property="BorderThickness" Value="1"/>
     </Style>
 
     <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-        <Setter Property="Background" Value="#C0392B"/>
+        <Setter Property="Background" Value="{StaticResource DangerBrush}"/>
     </Style>
 
     <Style TargetType="TextBox">
