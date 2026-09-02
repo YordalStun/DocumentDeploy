@@ -46,19 +46,32 @@ public partial class AgendaItemEditDialog : Window
                 DocumentsListBox.SelectedItems.Add(template);
         }
 
+        // Items already generated from a recurring slot already repeat every week - the
+        // checkbox is only meaningful for a brand-new, one-off item.
+        RepeatsCheckBox.Visibility = _item.SourceRecurringSlotId is null ? Visibility.Visible : Visibility.Collapsed;
+
         RebuildFieldValuePanel();
     }
 
     private void OnSessionTemplateChanged(object sender, SelectionChangedEventArgs e) => RebuildFieldValuePanel();
 
+    /// <summary>
+    /// Only planning-time questions are editable here - this dialog is reached from the weekly
+    /// planner, which is a planning-time tool. Completion-time questions (e.g. "how did it go")
+    /// are answered later, from the dashboard, once the session has actually happened.
+    /// </summary>
     private void RebuildFieldValuePanel()
     {
         FieldValuesPanel.Children.Clear();
         _fieldBoxes.Clear();
 
-        if (SessionTemplateCombo.SelectedItem is not SessionTemplate template) return;
+        var planningFields = (SessionTemplateCombo.SelectedItem as SessionTemplate)?.NoteFields
+            .Where(f => f.AskAt == PromptTiming.Planning)
+            .ToList() ?? new List<NotePromptField>();
 
-        foreach (var field in template.NoteFields)
+        FieldValuesHeader.Visibility = planningFields.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+
+        foreach (var field in planningFields)
         {
             FieldValuesPanel.Children.Add(new TextBlock { Text = field.Label, Margin = new Thickness(0, 6, 0, 0) });
             var box = new TextBox
@@ -107,12 +120,48 @@ public partial class AgendaItemEditDialog : Window
         _item.GroupName = string.IsNullOrWhiteSpace(GroupBox.Text) ? null : GroupBox.Text.Trim();
         _item.Notes = string.IsNullOrWhiteSpace(NotesBox.Text) ? null : NotesBox.Text.Trim();
         _item.SessionTemplateId = (SessionTemplateCombo.SelectedItem as SessionTemplate)?.Id;
-        _item.FieldValues = _fieldBoxes.ToDictionary(kv => kv.Key, kv => kv.Value.Text);
+
+        // Merge, don't replace - completion-time answers for this item (not shown/editable in
+        // this dialog) must survive a planning-time edit.
+        foreach (var (fieldId, box) in _fieldBoxes)
+            _item.FieldValues[fieldId] = box.Text;
 
         SyncDocumentNeeds();
+        ApplyRepeatIfRequested();
 
         Saved = true;
         Close();
+    }
+
+    /// <summary>
+    /// Promotes this one-off item into a recurring weekly slot so future weeks pick it up via
+    /// "Generate from timetable" - reuses the existing recurring-slot machinery rather than
+    /// inventing a second, parallel repeat mechanism.
+    /// </summary>
+    private void ApplyRepeatIfRequested()
+    {
+        if (RepeatsCheckBox.Visibility != Visibility.Visible || RepeatsCheckBox.IsChecked != true) return;
+        if (_item.SourceRecurringSlotId is not null) return;
+
+        var slot = new RecurringSlot
+        {
+            Day = _item.Date.DayOfWeek,
+            Start = _item.Start,
+            End = _item.End,
+            Title = _item.Title,
+            Kind = _item.Kind,
+            GroupName = _item.GroupName,
+            Notes = _item.Notes,
+            SessionTemplateId = _item.SessionTemplateId,
+            DocumentTemplateIds = _item.DocumentNeeds
+                .Where(n => n.TemplateId is not null)
+                .Select(n => n.TemplateId!.Value)
+                .ToList(),
+        };
+
+        _state.RecurringSlots.Add(slot);
+        _state.SaveRecurringSlots();
+        _item.SourceRecurringSlotId = slot.Id;
     }
 
     private void SyncDocumentNeeds()

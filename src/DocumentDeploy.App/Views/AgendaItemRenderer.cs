@@ -192,6 +192,45 @@ internal static class AgendaItemRenderer
         return panel;
     }
 
+    /// <summary>An inline "answer these now" form for a session that's already happened - one
+    /// text box per unanswered "after completion" question, with a single Save button that
+    /// writes them all into the item's FieldValues (merged, never replacing planning answers).</summary>
+    public static UIElement BuildCompletionAnswerRow(PendingCompletionAnswer pending, Action onChanged)
+    {
+        var panel = new StackPanel { Margin = new Thickness(0, 0, 0, 14) };
+        panel.Children.Add(new TextBlock
+        {
+            Text = $"{pending.Item.Title} · {pending.Item.Date:ddd d MMM}",
+            FontWeight = FontWeights.SemiBold,
+            Margin = new Thickness(0, 0, 0, 4),
+        });
+
+        var boxes = new Dictionary<Guid, TextBox>();
+        foreach (var field in pending.UnansweredFields)
+        {
+            panel.Children.Add(new TextBlock { Text = field.Label, Margin = new Thickness(0, 4, 0, 2) });
+            var box = new TextBox
+            {
+                AcceptsReturn = field.Multiline,
+                Height = field.Multiline ? 50 : double.NaN,
+                TextWrapping = TextWrapping.Wrap,
+            };
+            boxes[field.Id] = box;
+            panel.Children.Add(box);
+        }
+
+        var saveButton = new Button { Content = "Save answers", Padding = new Thickness(10, 4, 10, 4), Margin = new Thickness(0, 6, 0, 0), HorizontalAlignment = HorizontalAlignment.Left };
+        saveButton.Click += (_, _) =>
+        {
+            foreach (var (fieldId, box) in boxes)
+                pending.Item.FieldValues[fieldId] = box.Text;
+            onChanged();
+        };
+        panel.Children.Add(saveButton);
+
+        return panel;
+    }
+
     private static IEnumerable<(string Label, string Value)> GetFieldDisplayLines(AgendaItem item, AppState state)
     {
         if (item.SessionTemplateId is not { } templateId) yield break;

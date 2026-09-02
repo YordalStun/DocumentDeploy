@@ -69,11 +69,12 @@
     </Style>
 
     <!-- Neutral outline, not a competing fill color - reads as "not the primary action" without
-         clashing against it or the Danger red. -->
+         clashing against it or the Danger red. A light gray fill (not pure white) so it stays
+         visible against the white dashboard cards it usually sits on. -->
     <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-        <Setter Property="Background" Value="White"/>
+        <Setter Property="Background" Value="#E4E9F2"/>
         <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
-        <Setter Property="BorderBrush" Value="{StaticResource AppBorderBrush}"/>
+        <Setter Property="BorderBrush" Value="#B9C2D6"/>
         <Setter Property="BorderThickness" Value="1"/>
     </Style>
 

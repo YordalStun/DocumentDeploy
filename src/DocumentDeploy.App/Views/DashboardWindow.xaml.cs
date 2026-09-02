@@ -30,6 +30,7 @@ public partial class DashboardWindow : Window
         TimeStatusText.Text = snapshot.Now.ToString("HH:mm") + (snapshot.IsBusy ? " · busy right now" : " · free right now");
 
         RenderOutstanding(snapshot);
+        RenderWrapUp(snapshot);
         RenderCurrent(snapshot);
         RenderNext(snapshot);
         RenderToday(snapshot);
@@ -43,6 +44,15 @@ public partial class DashboardWindow : Window
         OutstandingPanel.Children.Clear();
         foreach (var item in overdue)
             OutstandingPanel.Children.Add(AgendaItemRenderer.BuildOutstandingRow(item, _state, OnDataChanged));
+    }
+
+    private void RenderWrapUp(ScheduleSnapshot snapshot)
+    {
+        WrapUpBanner.Visibility = snapshot.HasPendingCompletionAnswers ? Visibility.Visible : Visibility.Collapsed;
+
+        WrapUpPanel.Children.Clear();
+        foreach (var pending in snapshot.PendingCompletionAnswers)
+            WrapUpPanel.Children.Add(AgendaItemRenderer.BuildCompletionAnswerRow(pending, OnDataChanged));
     }
 
     private void RenderCurrent(ScheduleSnapshot snapshot)
@@ -88,7 +98,14 @@ public partial class DashboardWindow : Window
             TodayPanel.Children.Add(AgendaItemRenderer.BuildSummaryRow(item, snapshot.Now));
     }
 
-    private void OnDataChanged() => _state.SaveAgenda();
+    private void OnDataChanged()
+    {
+        _state.SaveAgenda();
+
+        // Recompute and re-render immediately rather than waiting for the next timer tick, so
+        // e.g. answering a completion question makes it disappear from Wrap Up right away.
+        UpdateSnapshot(ScheduleEngine.Evaluate(DateTime.Now, _state.Agenda, _state.Settings, _state.SessionTemplates));
+    }
 
     private void OnClosing(object? sender, CancelEventArgs e)
     {

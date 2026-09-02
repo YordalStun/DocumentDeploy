@@ -18,10 +18,12 @@ public partial class SessionTemplateEditDialog : Window
         _state = state;
         _template = template;
         _fields = template.NoteFields
-            .Select(f => new NotePromptField { Id = f.Id, Label = f.Label, Multiline = f.Multiline })
+            .Select(f => new NotePromptField { Id = f.Id, Label = f.Label, Multiline = f.Multiline, AskAt = f.AskAt })
             .ToList();
 
         DocumentsListBox.ItemsSource = _state.DocumentTemplates;
+        NewFieldTimingCombo.ItemsSource = Enum.GetValues<PromptTiming>();
+        NewFieldTimingCombo.SelectedItem = PromptTiming.Planning;
         RefreshFields();
 
         NameBox.Text = template.Name;
@@ -44,7 +46,11 @@ public partial class SessionTemplateEditDialog : Window
     {
         if (string.IsNullOrWhiteSpace(NewFieldBox.Text)) return;
 
-        _fields.Add(new NotePromptField { Label = NewFieldBox.Text.Trim() });
+        _fields.Add(new NotePromptField
+        {
+            Label = NewFieldBox.Text.Trim(),
+            AskAt = NewFieldTimingCombo.SelectedItem is PromptTiming timing ? timing : PromptTiming.Planning,
+        });
         NewFieldBox.Clear();
         RefreshFields();
     }

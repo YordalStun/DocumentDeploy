@@ -33,10 +33,18 @@ network calls at all.
 - **Friday (or any day) planning.** A dedicated weekly planner: generate the
   week from your recurring timetable in one click, then add one-off items
   (meetings, trips) on top.
-- **Templates for recurring patterns.** Define a "Phonics Lesson" template
-  once with its usual documents and a couple of quick questions (e.g.
-  "Today's sound", "Three words") - attach it to your recurring phonics
-  slot, and every week it prompts you to fill those in during planning.
+- **Templates with two kinds of questions.** Define a "Phonics Lesson"
+  template once with its usual documents plus custom questions, each tagged
+  as either a **planning** question (e.g. "Today's sound" - answered in the
+  weekly planner, all in one place, right after generating the week) or a
+  **completion** question (e.g. "How did it go" - answered from the
+  dashboard once the lesson is actually over). Completion answers are saved
+  and shown back to you as a recap in the planner the next time you plan,
+  so you can see how last week went before deciding this week's plan.
+- **Repeating one-off items.** Adding something in the weekly planner (a
+  child's 1-on-1, say) offers a "repeat this every week" option, which
+  quietly turns it into a proper recurring timetable slot - no need to set
+  it up twice.
 - **Duties and your own breaks count too.** Break, lunchtime and afternoon
   duty block popups just like a lesson does (you're supervising, not free);
   your own personal breaks don't, since that's exactly when a reminder is

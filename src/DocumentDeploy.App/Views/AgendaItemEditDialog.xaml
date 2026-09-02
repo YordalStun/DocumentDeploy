@@ -21,6 +21,8 @@
                 </StackPanel>
             </StackPanel>
 
+            <CheckBox x:Name="RepeatsCheckBox" Content="Repeat this every week on the same day" Margin="0,0,0,10"/>
+
             <TextBlock Text="Kind"/>
             <ComboBox x:Name="KindCombo" Margin="0,2,0,10"/>
 
@@ -33,6 +35,7 @@
             <TextBlock Text="Session template (optional)"/>
             <ComboBox x:Name="SessionTemplateCombo" Margin="0,2,0,10" DisplayMemberPath="Name" SelectionChanged="OnSessionTemplateChanged"/>
 
+            <TextBlock x:Name="FieldValuesHeader" Text="Planning questions" FontWeight="SemiBold" Margin="0,10,0,0" Visibility="Collapsed"/>
             <StackPanel x:Name="FieldValuesPanel" Margin="0,0,0,10"/>
 
             <TextBlock Text="Documents needed (click to toggle)"/>

@@ -1,4 +1,5 @@
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using DocumentDeploy.App.Services;
 using DocumentDeploy.Core.Models;
@@ -8,7 +9,8 @@ using DocumentDeploy.Core.Scheduling;
 namespace DocumentDeploy.App.Views;
 
 /// <summary>The Friday planning session: pick a week, generate it from the recurring timetable,
-/// add one-off items on top, and see anything still outstanding from before.</summary>
+/// add one-off items on top, answer planning-time questions in one place, and see anything
+/// still outstanding or answered from last week.</summary>
 public partial class WeeklyPlannerWindow : Window
 {
     private readonly AppState _state;
@@ -37,16 +39,17 @@ public partial class WeeklyPlannerWindow : Window
         WeekLabel.Text = $"{_weekStart:ddd d MMM} – {_weekStart.AddDays(6):ddd d MMM}";
         RefreshGrid();
         RefreshOutstanding();
+        RefreshRecap();
     }
 
     private void RefreshGrid()
     {
         var weekEnd = _weekStart.AddDays(6);
-        Grid.ItemsSource = _state.Agenda
-            .Where(i => i.Date >= _weekStart && i.Date <= weekEnd)
-            .OrderBy(i => i.Date).ThenBy(i => i.Start)
-            .ToList();
+        Grid.ItemsSource = ItemsInWeek(_weekStart, weekEnd).ToList();
     }
+
+    private IEnumerable<AgendaItem> ItemsInWeek(DateOnly start, DateOnly end) =>
+        _state.Agenda.Where(i => i.Date >= start && i.Date <= end).OrderBy(i => i.Date).ThenBy(i => i.Start);
 
     private void RefreshOutstanding()
     {
@@ -61,6 +64,47 @@ public partial class WeeklyPlannerWindow : Window
         var names = string.Join(", ", overdue.Take(3).Select(o => o.Need.Name));
         var extra = overdue.Count > 3 ? $" and {overdue.Count - 3} more" : "";
         OutstandingText.Text = $"{overdue.Count} document(s) still outstanding: {names}{extra}. Open the dashboard to file them.";
+    }
+
+    /// <summary>Shows answered "after completion" questions from the week immediately before the
+    /// one being viewed, so this week's planning can reference how last time went.</summary>
+    private void RefreshRecap()
+    {
+        var lastWeekStart = _weekStart.AddDays(-7);
+        var lastWeekEnd = _weekStart.AddDays(-1);
+
+        RecapPanel.Children.Clear();
+        var anyAnswers = false;
+
+        foreach (var item in ItemsInWeek(lastWeekStart, lastWeekEnd))
+        {
+            if (item.SessionTemplateId is not { } templateId) continue;
+            var template = _state.SessionTemplates.FirstOrDefault(t => t.Id == templateId);
+            if (template is null) continue;
+
+            var answered = template.NoteFields
+                .Where(f => f.AskAt == PromptTiming.Completion)
+                .Where(f => item.FieldValues.TryGetValue(f.Id, out var v) && !string.IsNullOrWhiteSpace(v))
+                .Select(f => $"{f.Label}: {item.FieldValues[f.Id]}")
+                .ToList();
+            if (answered.Count == 0) continue;
+
+            anyAnswers = true;
+            RecapPanel.Children.Add(new TextBlock
+            {
+                Text = $"{item.Date:ddd d MMM} · {item.Title}",
+                FontWeight = FontWeights.SemiBold,
+                Margin = new Thickness(0, 6, 0, 0),
+            });
+            RecapPanel.Children.Add(new TextBlock
+            {
+                Text = string.Join("  ·  ", answered),
+                TextWrapping = TextWrapping.Wrap,
+                Foreground = System.Windows.Media.Brushes.Gray,
+            });
+        }
+
+        RecapCard.Visibility = anyAnswers ? Visibility.Visible : Visibility.Collapsed;
     }
 
     private void OnPreviousWeekClick(object sender, RoutedEventArgs e)
@@ -81,9 +125,45 @@ public partial class WeeklyPlannerWindow : Window
         _state.Agenda.AddRange(created);
         _state.SaveAgenda();
         RefreshGrid();
-        MessageBox.Show($"Added {created.Count} item(s) from the timetable.", "Plan the week",
-            MessageBoxButton.OK, MessageBoxImage.Information);
+
+        var needingAnswers = GetItemsNeedingPlanningAnswers(created);
+        if (needingAnswers.Count > 0)
+        {
+            new PlanningQuestionsDialog(_state, needingAnswers) { Owner = this }.ShowDialog();
+            RefreshGrid();
+        }
+        else
+        {
+            MessageBox.Show($"Added {created.Count} item(s) from the timetable.", "Plan the week",
+                MessageBoxButton.OK, MessageBoxImage.Information);
+        }
     }
+
+    private void OnAnswerPlanningQuestionsClick(object sender, RoutedEventArgs e)
+    {
+        var weekEnd = _weekStart.AddDays(6);
+        var needingAnswers = GetItemsNeedingPlanningAnswers(ItemsInWeek(_weekStart, weekEnd));
+
+        if (needingAnswers.Count == 0)
+        {
+            MessageBox.Show("Nothing left to answer for this week.", "Plan the week",
+                MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        new PlanningQuestionsDialog(_state, needingAnswers) { Owner = this }.ShowDialog();
+        RefreshGrid();
+    }
+
+    /// <summary>Items with a session template that has planning-time questions still blank.</summary>
+    private List<AgendaItem> GetItemsNeedingPlanningAnswers(IEnumerable<AgendaItem> items) =>
+        items.Where(item =>
+        {
+            var template = _state.SessionTemplates.FirstOrDefault(t => t.Id == item.SessionTemplateId);
+            var planningFields = template?.NoteFields.Where(f => f.AskAt == PromptTiming.Planning).ToList();
+            if (planningFields is not { Count: > 0 }) return false;
+            return planningFields.Any(f => !item.FieldValues.TryGetValue(f.Id, out var v) || string.IsNullOrWhiteSpace(v));
+        }).ToList();
 
     private void OnAddClick(object sender, RoutedEventArgs e)
     {

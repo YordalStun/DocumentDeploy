@@ -12,8 +12,11 @@ public static class ScheduleEngine
     public static ScheduleSnapshot Evaluate(
         DateTime now,
         IReadOnlyList<AgendaItem> allAgendaItems,
-        AppSettings settings)
+        AppSettings settings,
+        IReadOnlyList<SessionTemplate>? sessionTemplates = null)
     {
+        sessionTemplates ??= Array.Empty<SessionTemplate>();
+
         var today = DateOnly.FromDateTime(now);
         var nowTime = TimeOnly.FromDateTime(now);
 
@@ -37,6 +40,7 @@ public static class ScheduleEngine
         }
 
         var outstanding = GetOutstandingReturns(allAgendaItems, now);
+        var pendingCompletion = GetPendingCompletionAnswers(allAgendaItems, sessionTemplates, now);
 
         var shouldShowMorningBrief =
             todayAgenda.Count > 0 &&
@@ -58,6 +62,7 @@ public static class ScheduleEngine
             NextItem = next,
             ItemsToPrepNow = itemsToPrep,
             OutstandingReturns = outstanding,
+            PendingCompletionAnswers = pendingCompletion,
             ShouldShowMorningBriefNow = shouldShowMorningBrief,
             ShouldShowPlanningReminderNow = shouldShowPlanningReminder,
         };
@@ -82,6 +87,34 @@ public static class ScheduleEngine
             }
         }
         return result.OrderBy(o => o.ResolvedDeadline).ToList();
+    }
+
+    /// <summary>
+    /// Items whose end time has passed but still have unanswered "after completion" questions
+    /// from their session template. Persists exactly like outstanding returns - it keeps
+    /// showing up until answered, however many ticks or days that takes.
+    /// </summary>
+    public static IReadOnlyList<PendingCompletionAnswer> GetPendingCompletionAnswers(
+        IReadOnlyList<AgendaItem> allAgendaItems, IReadOnlyList<SessionTemplate> sessionTemplates, DateTime now)
+    {
+        var result = new List<PendingCompletionAnswer>();
+        foreach (var item in allAgendaItems)
+        {
+            if (item.SessionTemplateId is not { } templateId) continue;
+            if (item.Date.ToDateTime(item.End) > now) continue; // hasn't happened yet
+
+            var template = sessionTemplates.FirstOrDefault(t => t.Id == templateId);
+            if (template is null) continue;
+
+            var unanswered = template.NoteFields
+                .Where(f => f.AskAt == PromptTiming.Completion)
+                .Where(f => !item.FieldValues.TryGetValue(f.Id, out var v) || string.IsNullOrWhiteSpace(v))
+                .ToList();
+
+            if (unanswered.Count > 0)
+                result.Add(new PendingCompletionAnswer(item, unanswered));
+        }
+        return result.OrderBy(p => p.Item.Date).ThenBy(p => p.Item.Start).ToList();
     }
 
     public static DateTime ResolveDeadline(AgendaItem item, DocumentNeed need, IReadOnlyList<AgendaItem> allAgendaItems) =>

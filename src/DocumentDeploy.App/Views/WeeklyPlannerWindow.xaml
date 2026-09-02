@@ -7,6 +7,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
@@ -20,7 +21,8 @@
             <Button Content="Generate from timetable" Padding="10,5" Margin="0,0,8,0" Click="OnGenerateClick"/>
             <Button Content="Add one-off item" Padding="10,5" Margin="0,0,8,0" Click="OnAddClick"/>
             <Button Content="Edit" Style="{StaticResource SecondaryButton}" Padding="10,5" Margin="0,0,8,0" Click="OnEditClick"/>
-            <Button Content="Delete" Style="{StaticResource DangerButton}" Padding="10,5" Click="OnDeleteClick"/>
+            <Button Content="Delete" Style="{StaticResource DangerButton}" Padding="10,5" Margin="0,0,8,0" Click="OnDeleteClick"/>
+            <Button Content="Answer planning questions" Style="{StaticResource SecondaryButton}" Padding="10,5" Click="OnAnswerPlanningQuestionsClick"/>
         </StackPanel>
 
         <Border Grid.Row="2" Background="#FDECEA" BorderBrush="#F1A9A0" BorderThickness="1" CornerRadius="6"
@@ -28,7 +30,15 @@
             <TextBlock x:Name="OutstandingText" TextWrapping="Wrap" Foreground="#8A2E24"/>
         </Border>
 
-        <DataGrid x:Name="Grid" Grid.Row="3" AutoGenerateColumns="False" IsReadOnly="True"
+        <Border Grid.Row="3" Background="#EEF1F7" BorderBrush="{StaticResource AppBorderBrush}" BorderThickness="1" CornerRadius="6"
+                Padding="10" Margin="0,0,0,10" x:Name="RecapCard" Visibility="Collapsed">
+            <StackPanel>
+                <TextBlock Text="Last week's answers" FontWeight="Bold" Margin="0,0,0,4"/>
+                <StackPanel x:Name="RecapPanel"/>
+            </StackPanel>
+        </Border>
+
+        <DataGrid x:Name="Grid" Grid.Row="4" AutoGenerateColumns="False" IsReadOnly="True"
                   SelectionMode="Single" SelectionUnit="FullRow" MouseDoubleClick="OnGridDoubleClick">
             <DataGrid.Columns>
                 <DataGridTextColumn Header="Date" Binding="{Binding Date, StringFormat={}{0:ddd d MMM}}" Width="120"/>

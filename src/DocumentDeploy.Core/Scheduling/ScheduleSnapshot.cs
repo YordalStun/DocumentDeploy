@@ -25,7 +25,11 @@ public sealed class ScheduleSnapshot
     /// <summary>Every unreturned document need across all dates, oldest deadline first.</summary>
     public required IReadOnlyList<OutstandingDocumentNeed> OutstandingReturns { get; init; }
 
+    /// <summary>Items that have already happened but still have unanswered "after completion" questions.</summary>
+    public required IReadOnlyList<PendingCompletionAnswer> PendingCompletionAnswers { get; init; }
+
     public bool HasOverdueReturns => OutstandingReturns.Any(o => o.IsOverdue);
+    public bool HasPendingCompletionAnswers => PendingCompletionAnswers.Count > 0;
     public bool PopupsAllowedNow => !IsBusy;
     public required bool ShouldShowMorningBriefNow { get; init; }
     public required bool ShouldShowPlanningReminderNow { get; init; }

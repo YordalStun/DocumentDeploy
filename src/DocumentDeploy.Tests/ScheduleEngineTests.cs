@@ -227,4 +227,79 @@ public class ScheduleEngineTests
 
         Assert.Equal(monday.ToDateTime(new TimeOnly(9, 30)), deadline);
     }
+
+    [Fact]
+    public void Completion_question_is_pending_once_the_item_has_ended_and_stays_pending_until_answered()
+    {
+        var completionField = new NotePromptField { Label = "How did it go?", AskAt = PromptTiming.Completion };
+        var template = new SessionTemplate { Name = "Phonics" };
+        template.NoteFields.Add(completionField);
+
+        var date = new DateOnly(2026, 9, 1);
+        var item = Item(date, new TimeOnly(9, 0), new TimeOnly(9, 30), SlotKind.Lesson);
+        item.SessionTemplateId = template.Id;
+        item.FieldValues[completionField.Id] = "";
+
+        var templates = new List<SessionTemplate> { template };
+        var agenda = new List<AgendaItem> { item };
+
+        var beforeEnd = ScheduleEngine.GetPendingCompletionAnswers(agenda, templates, date.ToDateTime(new TimeOnly(9, 15)));
+        Assert.Empty(beforeEnd);
+
+        var afterEnd = ScheduleEngine.GetPendingCompletionAnswers(agenda, templates, date.ToDateTime(new TimeOnly(9, 45)));
+        var pending = Assert.Single(afterEnd);
+        Assert.Same(item, pending.Item);
+        Assert.Equal(completionField.Id, Assert.Single(pending.UnansweredFields).Id);
+
+        item.FieldValues[completionField.Id] = "Went well";
+        var afterAnswering = ScheduleEngine.GetPendingCompletionAnswers(agenda, templates, date.ToDateTime(new TimeOnly(9, 45)));
+        Assert.Empty(afterAnswering);
+    }
+
+    [Fact]
+    public void Planning_time_questions_never_show_up_as_pending_completion_answers()
+    {
+        var planningField = new NotePromptField { Label = "Today's sound", AskAt = PromptTiming.Planning };
+        var template = new SessionTemplate { Name = "Phonics" };
+        template.NoteFields.Add(planningField);
+
+        var date = new DateOnly(2026, 9, 1);
+        var item = Item(date, new TimeOnly(9, 0), new TimeOnly(9, 30), SlotKind.Lesson);
+        item.SessionTemplateId = template.Id;
+        item.FieldValues[planningField.Id] = "";
+
+        var pending = ScheduleEngine.GetPendingCompletionAnswers(
+            new List<AgendaItem> { item }, new List<SessionTemplate> { template }, date.ToDateTime(new TimeOnly(10, 0)));
+
+        Assert.Empty(pending);
+    }
+
+    [Fact]
+    public void Evaluate_includes_pending_completion_answers_in_the_snapshot()
+    {
+        var completionField = new NotePromptField { Label = "Notes", AskAt = PromptTiming.Completion };
+        var template = new SessionTemplate { Name = "1-on-1" };
+        template.NoteFields.Add(completionField);
+
+        var date = new DateOnly(2026, 9, 1);
+        var item = Item(date, new TimeOnly(9, 0), new TimeOnly(9, 30), SlotKind.Meeting);
+        item.SessionTemplateId = template.Id;
+
+        var snapshot = ScheduleEngine.Evaluate(
+            date.ToDateTime(new TimeOnly(10, 0)), new List<AgendaItem> { item }, new AppSettings(), new List<SessionTemplate> { template });
+
+        Assert.True(snapshot.HasPendingCompletionAnswers);
+        Assert.Single(snapshot.PendingCompletionAnswers);
+    }
+
+    [Fact]
+    public void Evaluate_without_session_templates_still_works_and_has_no_pending_completion_answers()
+    {
+        var date = new DateOnly(2026, 9, 1);
+        var agenda = new List<AgendaItem> { Item(date, new TimeOnly(9, 0), new TimeOnly(9, 30), SlotKind.Lesson) };
+
+        var snapshot = ScheduleEngine.Evaluate(date.ToDateTime(new TimeOnly(10, 0)), agenda, new AppSettings());
+
+        Assert.False(snapshot.HasPendingCompletionAnswers);
+    }
 }
